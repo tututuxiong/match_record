@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<head>
+	<title>Badminton Team List</title>
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
+	<link href="css/templatemo_style.css" rel="stylesheet" type="text/css">	
+    <script>
+        function createTableHead()
+        {
+            var tableHead = "<caption></caption>";
+            tableHead +="<thead><tr>"
+            tableHead +="<th align=\"right\"" + ">年份</th>"
+            tableHead +="<th align=\"right\"" + ">ID</th>"
+            tableHead +="<th align=\"right\""+ ">队伍</th>"
+            tableHead +="<th align=\"right\""+ ">总分</th>"
+            tableHead +="<th align=\"right\""+ ">队长</th>"
+            tableHead +="<th align=\"right\""+ ">男队员</th>"
+            tableHead +="<th align=\"right\""+ ">女队员</th>"
+            tableHead +="</tr></thead>"
+            $('#result').append(tableHead); 
+        }
+        function addTeamLink(teamName,teamId)
+        {
+            var rowData = ""
+            rowData += "<td><a href=\"/" + teamId + "_team.html" + "\">" + teamName +"</a></td>"
+            return rowData
+        }
+        function addTableData(data)
+        {
+            var rowData = ""
+            rowData += "<td>" + data + "</td>"
+            return rowData
+        }
+        function addPersonLink(data)
+        {
+            var rowData = ""
+            rowData += "<td><a href=\"/" + data + "_person.html" + "\">" + data +"</a></td>"
+            return rowData
+        } 
+        function addMemberList(num,data)
+        {
+            var rowData = "<td>"
+            
+            for (var i=0; i<num; i++)
+            {
+               rowData += "<a href=\"/" + data[i] + "_person.html" + "\">" + data[i] +"</a>"
+               rowData +=" , "
+            }
+            rowData += "</td>"
+            return rowData
+        }          
+        function addTeamData(year,TeamNumber,teamId,teamName, score, teamLeader,maleMemberNum, maleMember,femaleMemberNum, femaleMember)
+        {
+            
+            var row = ""
+            row += addTableData(year)
+            row += addTableData(TeamNumber)
+            row += addTeamLink(teamName,teamId)
+            row += addTableData(score)
+            row += addPersonLink(teamLeader)
+            row += addMemberList(maleMemberNum,maleMember)
+            row += addMemberList(femaleMemberNum,femaleMember)
+            return row
+        }
+        
+    </script>
+</head>
+
+
+<body class="templatemo-bg-gray">
+	<h1 class="margin-bottom-24">Badminton Team List</h1>
+    <div class ="hidden" id="name">{{.Name}}</div>
+    <div class="container">
+        <div class="col-xl-24">	
+            <table class="table table-striped" id="result">
+            </table>
+        </div>
+    </div>
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+
+<script>
+     //get Person record info
+    $.ajax({
+			type : 'post',
+			url : 'ajax',
+			data : {
+				method: "getTeamInfo",
+                name:  $('#name').html()
+			},
+			dataType:"json",
+			async : true,
+			success : function(msg) {
+                createTableHead();
+                
+                var record =""
+                record += "<tbody>";
+                
+                $.each(msg, function(i, n){
+                    record += "<tr>"
+                    record += addTeamData(n["Year"],
+                                          n["TeamNumber"],
+                                          n["TeamId"],   
+                                          n["TeamName"],     
+                                             n["Score"],
+                                             n["TeamLeader"],
+                                             n["MaleTeamMemberNum"],
+                                             n["MaleTeamMember"],
+                                             n["FemaleTeamMemberNum"],
+                                             n["FeMaleTeamMember"]);
+                    record += "</tr>"
+                });
+                
+                record += "</tbody>";  
+                       
+                $('#result').append(record); 
+			},
+			
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				        console.log("bad");
+                        alert(XMLHttpRequest.status);
+                        alert(XMLHttpRequest.readyState);
+                        alert(textStatus);                        
+                        alert(errorThrown);             
+                    }
+      })
+</script>
+</html>

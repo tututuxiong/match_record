@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<head>
+	<title>{{.Name}} page</title>
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
+	<link href="css/templatemo_style.css" rel="stylesheet" type="text/css">	
+    <script>
+      function createTableHead()
+        {
+            var tableHead = "<caption>个人战况</caption>";
+            tableHead +="<thead><tr>"
+            tableHead +="<th>日期</th>"
+            tableHead +="<th>队伍</th>"
+            tableHead +="<th>项目</th>"
+            tableHead +="<th>搭档</th>"
+            tableHead +="<th>对方队伍</th>"
+            tableHead +="<th>对手</th>"
+            tableHead +="<th>比分</th>"
+            tableHead +="</tr></thead>"
+            $('#result').append(tableHead); 
+        }
+      function addTableData(data)
+        {
+            var rowData = ""
+            rowData += "<td>" + data + "</td>"
+            return rowData
+        }
+      function addTeamLink(teamName,teamId)
+        {
+            var rowData = ""
+            rowData += "<td><a href=\"/" + teamId + "_team.html" + "\">" + teamName +"</a></td>"
+            return rowData
+        }
+      function addPersonLink(data)
+        {
+            var rowData = ""
+            rowData += "<td><a href=\"/" + data + "_person.html" + "\">" + data +"</a></td>"
+            return rowData
+        }
+      function addPersonSLink(data1,data2)
+        {
+            var rowData = ""
+            rowData += "<td>"
+            rowData += "<a href=\"/" + data1 + "_person.html" + "\">" + data1 +"</a>"
+            rowData += " && "
+            rowData += "<a href=\"/" + data2 + "_person.html" + "\">" + data2 +"</a>"
+            rowData +="</td>"
+            return rowData
+        } 
+      function createTableRow(Date,Partner,Opponenter_1,Opponenter_2,Score,Combin_type,Team,OpponenterTeam,TeamId)
+        {
+            var row = ""
+            row += addTableData(Date)
+            row += addTeamLink(Team,TeamId)
+            row += addTableData(Combin_type)
+            row += addPersonLink(Partner)
+            row += addTeamLink(OpponenterTeam)
+            row += addPersonSLink(Opponenter_1,Opponenter_2)
+            row += addTableData(Score)            
+            return row;
+        }
+        
+       function addPersonLinkForList(data)
+        {
+            var rowData = ""
+            rowData += "<li><a href=\"/" + data + "_person.html" + "\">" + data +"</a></li>"
+            return rowData
+        }       
+    </script>
+</head>
+
+
+<body class="templatemo-bg-gray">
+	<h1 class="margin-bottom-12">Welcome {{.Name}}</h1>
+    <div class ="hidden" id="name">{{.Name}}</div>
+    <div class="container">
+        <div class="col-xs-12">	
+            <table class="table table-striped" id="result">
+            </table>
+        </div>
+        <div class="col-xs-12">	
+        <br><br><hr><br><br>
+        </div>
+        
+        <div class="col-xs-6">男选手
+            <div id="male">
+            </div>
+        </div>
+        <div class="col-xs-6">女选手
+            <div id="female">
+        </div>
+    </div>
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+
+
+
+
+<script>
+    
+    //get Person record info
+    $.ajax({
+			type : 'post',
+			url : 'ajax',
+			data : {
+				method: "getPersonData",
+                name:  $('#name').html()
+			},
+			dataType:"json",
+			async : true,
+			success : function(msg) {
+                createTableHead();
+                
+                var record =""
+                record += "<tbody>";
+                
+                $.each(msg, function(i, n){
+                    record += "<tr>"
+                    record += createTableRow(n["Date"],n["Partner"],n["Opponenter"][0],n["Opponenter"][1],
+                                             n["Score"],n["Combin_type"],n["Team"],n["OpponenterTeam"],n["TeamId"]);
+                    record += "</tr>"
+                });
+                
+                record += "</tbody>";  
+                       
+                $('#result').append(record); 
+			},
+			
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				        console.log("bad");
+                        alert(XMLHttpRequest.status);
+                        alert(XMLHttpRequest.readyState);
+                        alert(textStatus);                        
+                        alert(errorThrown);             
+                    }
+      })
+    
+    //get Person list for demo
+     $.ajax({
+			type : 'post',
+			url : 'ajax',
+			data : {
+				method: "getPersonList",
+                name:  $('#name').html()
+			},
+			dataType:"json",
+			async : true,
+			success : function(msg) {
+                
+                var recordForMale =""
+                var recordForFemale =""
+                recordForMale += "<ul>";
+                recordForFemale += "<ul>";
+                
+                $.each(msg, function(i, n){
+                    if (n["Gender"] == "M")
+                        recordForMale += addPersonLinkForList(n["Name"]);
+                    else
+                        recordForFemale += addPersonLinkForList(n["Name"]);
+                });
+                
+                recordForMale += "</ul>";  
+                       
+                $('#male').append(recordForMale); 
+                $('#female').append(recordForFemale); 
+			},
+			
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				        console.log("bad");
+                        alert(XMLHttpRequest.status);
+                        alert(XMLHttpRequest.readyState);
+                        alert(textStatus);                        
+                        alert(errorThrown);             
+                    }
+      })    
+</script>
+</html>

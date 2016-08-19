@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<head>
+	<title>{{.Name}} page</title>
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
+	<link href="css/templatemo_style.css" rel="stylesheet" type="text/css">	
+    <script>
+      function createTableHead()
+        {
+            var tableHead = "<caption></caption>";
+            tableHead +="<thead><tr>"
+            tableHead +="<th >对方队伍</th>"
+            tableHead +="<th>日期</th>"
+            tableHead +="<th >类型</th>"
+            tableHead +="<th >我方队员</th>"
+            tableHead +="<th >比分</th>"
+            tableHead +="<th >对方队员</th>"
+//            tableHead +="<th>得分</th>"
+//            tableHead +="<th>总积分</th>"
+            tableHead +="</tr></thead>"
+            $('#result').append(tableHead); 
+        }
+      function addTableData(data)
+        {
+            var rowData = ""
+            rowData += "<td rowspan=6>" + data + "</td>"
+            return rowData
+        }
+        
+             function addTableData2(data, idx)
+        {
+            var rowData = ""
+            var type = ["男双1", "男双2", "混双1", "混双2", "女双"];
+            rowData += ( "<td>"
+                       + type[idx]
+                       + "</td>"
+                       + "<td>"
+                       +  "<a href=\"/" + data.OurPlayer[0] + "_person.html" + "\">" + data.OurPlayer[0] +"</a>"
+                       + " + "
+                       +  "<a href=\"/" + data.OurPlayer[1] + "_person.html" + "\">" + data.OurPlayer[1] +"</a>"
+                       + "</td>"
+                       + "<td>"
+                       + data.Score
+                       + "</td>"
+                       + "<td>"
+                       + "<a href=\"/" + data.EnemyPlayer[0] + "_person.html " + "\" >" + data.EnemyPlayer[0] +"</a>"
+                       + "+"
+                       + "<a href=\"/" + data.EnemyPlayer[1] + "_person.html " + "\" >" + data.EnemyPlayer[1] +"</a>"
+                       + "</td>"
+                       )
+            console.log(rowData)
+            return rowData
+        }
+      function addTeamLink(teamName,teamId)
+        {
+            var rowData = ""
+            rowData += "<td rowspan=6><a href=\"/" + teamId + "_team.html" + "\">" + teamName +"</a></td>"
+            return rowData
+        }
+      function addPersonLink(data)
+        {
+            var rowData = ""
+            rowData += "<td><a href=\"/" + data + "_person.html" + "\">" + data +"</a></td>"
+            return rowData
+        }
+      function addPersonSLink(data1,data2)
+        {
+            var rowData = ""
+            rowData += "<td>"
+            rowData += "<a href=\"/" + data1 + "_person.html" + "\">" + data1 +"</a>"
+            rowData += " && "
+            rowData += "<a href=\"/" + data2 + "_person.html" + "\">" + data2 +"</a>"
+            rowData +="</td>"
+            return rowData
+        } 
+        
+        
+      function createTableRow(teamName,TotalScore,EnemyTeamInfoNum,EnemyTeamInfoList)
+        {
+            var headString = teamName +"  积分：" + TotalScore
+            $("#head").html(headString)
+            var row = ""
+            
+            for (var i=0; i<EnemyTeamInfoNum; i++)
+            {
+                row += "<tr>"
+                row += addTeamLink(EnemyTeamInfoList[i].EnemyTeamName,EnemyTeamInfoList[i].EnemyTeamId)
+                row += addTableData( EnemyTeamInfoList[i].Date)
+                row += "</tr>"
+                
+                for (var j=0; j< EnemyTeamInfoList[i].MatchResultNum; j++)
+                    {
+                      row += "<tr>"
+                        row += addTableData2( EnemyTeamInfoList[i].MatchResults[j], j)
+                      row += "</tr>"
+                    }
+
+                //row += "<tr><td><hr><td colspan=6></tr>"
+                
+            }          
+            return row;
+        }
+    </script>
+</head>
+
+
+<body class="templatemo-bg-gray">
+	<h1 class="margin-bottom-12" id="head"></h1>
+    <div class="col-xs-12">	
+        <br><br>
+    </div>
+    <div class ="hidden" id="name">{{.Name}}</div>
+    <div class="container">
+        <div class="col-xs-12">	
+            <table class="table table-hover table-striped " id="result" style="width=100">
+            </table>
+        </div>
+         <br><br>
+        <div class="col-xs-12">	
+            <br><br>
+            <a class="btn btn-large btn-primary" href="/" style="font-size: larger" >Main page</a>
+        </div>
+    </div>
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+
+
+
+
+<script>
+    $.ajax({
+			type : 'post',
+			url : 'ajax',
+			data : {
+				method: "getTeamMatchInfo",
+                name:  $('#name').html()
+			},
+			dataType:"json",
+			async : true,
+			success : function(msg) {
+                createTableHead();
+                
+                var record =""
+                record += "<tbody>";
+                
+                record += createTableRow(msg["TeamName"],msg["TotalScore"],msg["EnemyTeamInfoNum"],msg["EnemyTeamInfoList"]);
+                
+                record += "</tbody>";  
+                       
+                $('#result').append(record); 
+			},
+			
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				        console.log("bad");
+                        alert(XMLHttpRequest.status);
+                        alert(XMLHttpRequest.readyState);
+                        alert(textStatus);                        
+                        alert(errorThrown);             
+                    }
+      })
+</script>
+</html>
