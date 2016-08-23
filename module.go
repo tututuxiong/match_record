@@ -21,25 +21,25 @@ func getPersonRecordDatas(name string) []personData_json {
 	var personRecords []personData_json
 
 	Gender := getPersonGender(name)
-	fmt.Println(Gender)
+	//fmt.Println(Gender)
 
 	teamWithMemberS := getTeamWithMember(name)
-	fmt.Println(teamWithMemberS)
+	//fmt.Println(teamWithMemberS)
 
 	for _, t_m := range teamWithMemberS {
 		var pairS []string
 		pairS = getPairId(t_m.memberId)
-		fmt.Println(pairS)
+		//fmt.Println(pairS)
 
 		for _, p := range pairS {
 			PartnerWithMatch := GetPartnerWithMatchInfo(p, t_m.memberId)
-			fmt.Println(PartnerWithMatch)
+			//fmt.Println(PartnerWithMatch)
 
 			enemyScore := getEnemyScore(p, PartnerWithMatch.MatchId)
-			fmt.Println(enemyScore)
+			//fmt.Println(enemyScore)
 
 			enemyPlayerInfo := GetEnemyInfo(p, PartnerWithMatch.MatchId)
-			fmt.Println(enemyPlayerInfo)
+			//fmt.Println(enemyPlayerInfo)
 
 			var record personData_json
 			record.Date = PartnerWithMatch.MatchDate
@@ -54,14 +54,14 @@ func getPersonRecordDatas(name string) []personData_json {
 					record.Opponenter[i] = e.enemyName
 					record.OpponenterTeam = e.enemyTeamName
 				} else {
-					fmt.Println("")
+					//fmt.Println("")
 				}
 
 			}
 			personRecords = append(personRecords, record)
 		}
 	}
-	fmt.Println(personRecords)
+	//fmt.Println(personRecords)
 	return personRecords
 }
 
@@ -91,15 +91,20 @@ func getTeamList(teamMemberList []teamMember_SQL) []teamInfo_json {
 	return teamInfos
 }
 func getTeamInfoList() []teamInfo_json {
-	fmt.Println("Get team info")
-
 	teamMemberList := getAllTeamMemberGenderInfo()
-	fmt.Println(teamMemberList)
 
 	var return_teamInfos []teamInfo_json
 	teamInfos := getTeamList(teamMemberList)
 
+	teamScores := getTeamScore()
+
 	for _, teamInfos_range := range teamInfos {
+		for _, TeamScore := range teamScores {
+			if teamInfos_range.TeamId == TeamScore.TeamId {
+				teamInfos_range.Score = TeamScore.Score
+			}
+		}
+
 		for _, teamMemberList_range := range teamMemberList {
 			if teamInfos_range.TeamId == teamMemberList_range.TeamId {
 				if teamMemberList_range.TeamMemberGender == "M" {
@@ -113,12 +118,12 @@ func getTeamInfoList() []teamInfo_json {
 		}
 		return_teamInfos = append(return_teamInfos, teamInfos_range)
 	}
-	fmt.Println(return_teamInfos)
+	//fmt.Println(return_teamInfos)
 	return return_teamInfos
 }
 
 func getTeamRrcordInfos(teamId string) teamResultInfo_json {
-	fmt.Println("Query team record info")
+	//fmt.Println("Query team record info")
 
 	var teamResultInfo teamResultInfo_json
 	teamResultInfo.TeamName = getTeamNameById(teamId)
@@ -144,30 +149,35 @@ func getTeamRrcordInfos(teamId string) teamResultInfo_json {
 			var m MatchResult_json
 
 			e.Date = dateAndMajorRound.date
+			e.MajorRound = dateAndMajorRound.majorRound
 
 			pairInfos := getPairInfos(oneMatch.pairId)
-			fmt.Println(pairInfos)
+			//fmt.Println(pairInfos)
 
 			enemyTeamInfo := getEnemyTeamInfos(oneMatch.matchId, teamId)
-			fmt.Println(enemyTeamInfo)
+			//fmt.Println(enemyTeamInfo)
 
 			e.EnemyTeamName = enemyTeamInfo.enemyTeamName
 			e.EnemyTeamId = enemyTeamInfo.enemyTeamId
 			e.EnemyTeamNumber = enemyTeamInfo.enemyTeamNumber
 
-			score := getEnemyTeamScore(oneMatch.matchId, teamId)
-			fmt.Println(score)
+			Enemyscore := getEnemyTeamScore(oneMatch.matchId, teamId)
+			//fmt.Println(Enemyscore)
 
-			m.Score = strconv.Itoa(oneMatch.score) + ":" + strconv.Itoa(score)
+			m.SmallRound = oneMatch.smallRound
+			m.OurScore = oneMatch.score
+			m.EnemyScore = Enemyscore
 
-			if oneMatch.score > score {
-				winNum++
-			} else {
-				loseNum++
+			if oneMatch.score != 0 || Enemyscore != 0 {
+				if oneMatch.score > Enemyscore {
+					winNum++
+				} else {
+					loseNum++
+				}
 			}
 
 			enemyPlays := getEnemyPlayerData(oneMatch.matchId, teamId)
-			fmt.Println(enemyPlays)
+			//fmt.Println(enemyPlays)
 
 			for _, player := range pairInfos {
 				m.OurPlayerNum++
@@ -185,14 +195,76 @@ func getTeamRrcordInfos(teamId string) teamResultInfo_json {
 		}
 		teamResultInfo.EnemyTeamInfoList = append(teamResultInfo.EnemyTeamInfoList, e)
 
-		if winNum > loseNum {
-			teamResultInfo.TotalScore += 3
+		if winNum+loseNum == 5 {
+			if winNum > loseNum {
+				teamResultInfo.TotalScore += 3
 
-		} else {
-			teamResultInfo.TotalScore += 1
+			} else {
+				teamResultInfo.TotalScore += 1
+			}
 		}
 	}
-	fmt.Println(teamResultInfo)
+	teamResultInfo.TeamId = teamId
+	//fmt.Println(teamResultInfo)
 
 	return teamResultInfo
+}
+
+func handleUpdateScoreSql(TeamId string, Date string, MajorRound string, SmallRound string, Score string) {
+
+	matchId, pairId := getMatchIdAndPairId(TeamId, Date, MajorRound, SmallRound)
+	updateScore(matchId, pairId, Score)
+}
+
+func getLatestRoundInfo() latestTwoMatchInfo_json {
+	matchDate := getLatestMatchDate()
+	var infos latestTwoMatchInfo_json
+	infos.Date = matchDate
+	infos.Round1 = getLatestTeamScoreInfo(matchDate, 1)
+	infos.Round2 = getLatestTeamScoreInfo(matchDate, 2)
+
+	return infos
+}
+
+func getLatestTeamScoreInfo(matchDate string, round int) []latestMatchInfo_json {
+	var LMIs []latestMatchInfo_json
+
+	TeamScores := getTeamScoreInfo(matchDate, round)
+	TeamIdList := getLatestTeamList(matchDate, round)
+
+	for _, oneTeam := range TeamIdList {
+		var oneteamScore latestMatchInfo_json
+		oneteamScore.TeamName = getTeamNameById(oneTeam)
+		oneteamScore.TeamId = oneTeam
+
+		for _, oneMatchInfo := range TeamScores {
+			if oneMatchInfo.TeamId == oneTeam {
+				oneteamScore.Scores = append(oneteamScore.Scores, oneMatchInfo.Score)
+			}
+		}
+		LMIs = append(LMIs, oneteamScore)
+	}
+
+	//caculate big score
+
+	for i := 0; i < len(LMIs); {
+		var team1Win = 0
+		var team2Win = 0
+		team1 := LMIs[i]
+		team2 := LMIs[i+1]
+
+		for j := 0; j < len(team1.Scores); j++ {
+			if team1.Scores[j] == 0 && team2.Scores[j] == 0 {
+			} else if team1.Scores[j] > team2.Scores[j] {
+				team1Win++
+			} else {
+				team2Win++
+			}
+		}
+		LMIs[i].Scores = append(LMIs[i].Scores, team1Win)
+		LMIs[i+1].Scores = append(LMIs[i+1].Scores, team2Win)
+		i = i + 2
+	}
+
+	return LMIs
 }

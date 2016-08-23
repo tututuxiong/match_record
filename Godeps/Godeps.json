@@ -1,0 +1,12 @@
+{
+	"ImportPath": "rd-badminton",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.1.0-76-gc3e9588",
+			"Rev": "c3e9588849195eefa783417c3a53d092f6e93526"
+		}
+	]
+}

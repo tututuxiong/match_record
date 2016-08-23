@@ -11,6 +11,9 @@
 	<link href="css/bootstrap-theme.min.css" rel="stylesheet" type="text/css">
 	<link href="css/templatemo_style.css" rel="stylesheet" type="text/css">	
     <script>
+        var Teamdata
+        var loopId = 0
+        
       function createTableHead()
         {
             var tableHead = "<caption></caption>";
@@ -21,11 +24,95 @@
             tableHead +="<th >我方队员</th>"
             tableHead +="<th >比分</th>"
             tableHead +="<th >对方队员</th>"
-//            tableHead +="<th>得分</th>"
-//            tableHead +="<th>总积分</th>"
             tableHead +="</tr></thead>"
             $('#result').append(tableHead); 
         }
+        
+        function getMatchType(id)
+        {
+            switch (id){
+                case 0:
+                        return "男双1"
+                case 1:
+                        return "男双2"                        
+                case 2:
+                        return "混双1"                        
+                case 3:
+                        return "混双1"                        
+                case 4:
+                        return "女双"                                         
+            }
+        }
+        
+        function getMatchData(loopNum){
+            var param = ""
+            var count = 0
+            EnemyTeamInfoNum = Teamdata["EnemyTeamInfoNum"]
+            EnemyTeamInfoList = Teamdata["EnemyTeamInfoList"]
+            for (var i=0; i<EnemyTeamInfoNum; i++)
+            {
+                for (var j=0; j< EnemyTeamInfoList[i].MatchResultNum; j++)
+                    {
+                        if (count == loopNum)
+                            {
+                                param += "Date="
+                                param += EnemyTeamInfoList[i].Date
+                                param += "&"
+                                
+                                param += "MajorRound="
+                                param += EnemyTeamInfoList[i].MajorRound
+                                param += "&"
+                                
+                                param += "TypeId="
+                                param += getMatchType(loopNum%5)
+                                //param += loopNum%5
+                                param += "&"
+                                
+                                param += "SmallRound="
+                                param += EnemyTeamInfoList[i].MatchResults[j].SmallRound
+                                param += "&"
+                                
+                                param += "OurTeamId="
+                                param += Teamdata["TeamId"]
+                                param += "&"                              
+                                
+                                param += "EnemyTeamId="
+                                param += EnemyTeamInfoList[i].EnemyTeamId
+                                param += "&"                           
+                                
+                                param += "OurScore="
+                                param += EnemyTeamInfoList[i].MatchResults[j].OurScore
+                                param += "&"
+                                
+                                param += "EnemyScore="
+                                param += EnemyTeamInfoList[i].MatchResults[j].EnemyScore
+                                param += "&"                                
+                                
+                                param += "OurPlayer1="
+                                param += EnemyTeamInfoList[i].MatchResults[j].OurPlayer[1].replace(/\s/g,'-')
+                                param += "&"                                
+                                
+                                param += "OurPlayer0="
+                                param += EnemyTeamInfoList[i].MatchResults[j].OurPlayer[0].replace(/\s/g,'-')
+                                param += "&"                                
+                                
+                                param += "EnemyPlayer0="
+                                param += EnemyTeamInfoList[i].MatchResults[j].EnemyPlayer[0].replace(/\s/g,'-')
+                                param += "&"                                
+                                
+                                param += "EnemyPlayer1="
+                                param += EnemyTeamInfoList[i].MatchResults[j].EnemyPlayer[1].replace(/\s/g,'-')                            
+                                
+                                //console.log(param)
+                                return param
+                                //console.log(matchData)
+                            }
+                        count++
+                    }
+            }
+
+        }
+        
       function addTableData(data)
         {
             var rowData = ""
@@ -36,6 +123,7 @@
              function addTableData2(data, idx)
         {
             var rowData = ""
+            var param = getMatchData(loopId)
             var type = ["男双1", "男双2", "混双1", "混双2", "女双"];
             rowData += ( "<td>"
                        + type[idx]
@@ -46,7 +134,8 @@
                        +  "<a href=\"/" + data.OurPlayer[1] + "_person.html" + "\">" + data.OurPlayer[1] +"</a>"
                        + "</td>"
                        + "<td>"
-                       + data.Score
+                       + "<a href=updateScore.html?" + param + ">" + data.OurScore + ":" + data.EnemyScore +"</a>"
+                       //+ "<button class=\"btn-link\" id=" + loopId +">" + data.OurScore + ":" + data.EnemyScore + "</button>"
                        + "</td>"
                        + "<td>"
                        + "<a href=\"/" + data.EnemyPlayer[0] + "_person.html " + "\" >" + data.EnemyPlayer[0] +"</a>"
@@ -54,7 +143,7 @@
                        + "<a href=\"/" + data.EnemyPlayer[1] + "_person.html " + "\" >" + data.EnemyPlayer[1] +"</a>"
                        + "</td>"
                        )
-            console.log(rowData)
+            loopId++;
             return rowData
         }
       function addTeamLink(teamName,teamId)
@@ -106,6 +195,7 @@
             }          
             return row;
         }
+        
     </script>
 </head>
 
@@ -124,8 +214,9 @@
          <br><br>
         <div class="col-xs-12">	
             <br><br>
-            <a class="btn btn-large btn-primary" href="/" style="font-size: larger" >Main page</a>
+            <a class="btn btn-large btn-primary" href="/" style="font-size: larger">Main page</a>
         </div>
+        
     </div>
 	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
@@ -146,6 +237,7 @@
 			async : true,
 			success : function(msg) {
                 createTableHead();
+                Teamdata = msg
                 
                 var record =""
                 record += "<tbody>";

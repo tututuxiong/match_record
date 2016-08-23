@@ -34,7 +34,7 @@
         function addTableData(data)
         {
             var rowData = ""
-            rowData += "<td>" + data + "</td>"
+            rowData += "<td align=\"middle\">" + data + "</td>"
             return rowData
         }
         function addPersonLink(data)
@@ -69,6 +69,118 @@
             return row
         }
         
+        
+        function updateLatestDate()
+        {
+            $.ajax({
+                    type : 'post',
+                    url : 'ajax',
+                    data : {
+                        method: "getLatestResult"
+                    },
+                    dataType:"json",
+                    async : true,
+                    success : function(msg) {
+                        var record1 =""
+                        var record2 =""
+                        record1 += renderLatestData(msg["Round1"])
+                        record2 += renderLatestData(msg["Round2"])
+                        date = msg["Date"]
+                    
+                        $('#latestResult_up').append(record1);
+                        $('#latestResult_down').append(record2);
+                        
+                        $('#up_head').html(date + "    " +"Round 1")
+                        $('#down_head').html(date + "    " +"Round 2")
+                    },
+
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                                console.log("bad");
+                                alert(XMLHttpRequest.status);
+                                alert(XMLHttpRequest.readyState);
+                                alert(textStatus);                        
+                                alert(errorThrown);             
+                            }
+              })            
+        }
+
+        function getMatchType(id)
+        {
+            switch (id){
+                case 0:
+                        return "男双1"
+                case 1:
+                        return "男双2"                        
+                case 2:
+                        return "混双1"                        
+                case 3:
+                        return "混双1"                        
+                case 4:
+                        return "女双"      
+                case 5:
+                        return "大比分"
+            }
+        }
+        
+        function renderLatestData(msg)
+        {
+            var record =""
+            record += "<tbody>";
+            record += createLatestRecordTableHead(msg)
+            
+            record += addRowData(msg,0)
+            record += addRowData(msg,1)
+            record += addRowData(msg,2)
+            record += addRowData(msg,3)
+            record += addRowData(msg,4)
+            record += addRowData(msg,5)
+            
+            record += "</tbody>"; 
+            return record
+        }
+        
+        function addRowData(msg,id)
+        {
+            var row = "<tr>"
+            
+            row += addTableData(getMatchType(id))
+            
+            for (var m=0; m<8; m++)
+            {
+                if (m%2 == 0)
+                    {
+                        row += "<th align=\"middle\">" + "   " + "</th>" 
+                        row += "<th align=\"middle\">" + "   " + "</th>" 
+                        row += "<th align=\"middle\">" + "   " + "</th>"
+                    }
+                var score = msg[m]["Scores"][id]
+                row += addTableData(score)  
+                
+            }
+            row += "</tr>"
+            return row
+        }
+
+        function createLatestRecordTableHead(msg)
+        {
+            var tableHead = "<caption></caption>";
+            tableHead += "<thead><tr>"
+            tableHead += "<th align=\"right\"" + ">类型</th>"
+            for (var i=0; i<8; i++)
+                {
+                    if (i %2 == 0)
+                    {
+                       tableHead += "<th>" + "   " + "</th>"    
+                       tableHead += "<th>" + "   " + "</th>"   
+                       tableHead += "<th>" + "   " + "</th>"    
+                    }
+                    tableHead += "<th align=\"middle\">"
+                    tableHead += "<a href=\"/" + msg[i]["TeamId"] + "_team.html" + "\">" + msg[i]["TeamName"]  +"</a>"
+                    tableHead += "</th>" 
+                }
+            tableHead += "</tr></thead>"
+            return tableHead
+        }        
     </script>
 </head>
 
@@ -76,6 +188,26 @@
 <body class="templatemo-bg-gray">
 	<h1 class="margin-bottom-24">Badminton Team List</h1>
     <div class ="hidden" id="name">{{.Name}}</div>
+    <hr>
+    <div class="container">
+        <div class="col-xl-24">	
+            <h1 class="margin-bottom-24" id="up_head"></h1>
+            <table class="table table-striped" id="latestResult_up">
+            </table>
+        </div>
+    </div>    
+    
+    <hr>
+    
+    <div class="container">
+        <div class="col-xl-24">	
+            <h1 class="margin-bottom-24" id="down_head"></h1>
+            <table class="table table-striped" id="latestResult_down">
+            </table>
+        </div>
+    </div>    
+    <hr>
+      
     <div class="container">
         <div class="col-xl-24">	
             <table class="table table-striped" id="result">
@@ -120,7 +252,7 @@
                 
                 record += "</tbody>";  
                        
-                $('#result').append(record); 
+                $('#result').append(record);
 			},
 			
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -131,5 +263,7 @@
                         alert(errorThrown);             
                     }
       })
+    
+    updateLatestDate()
 </script>
 </html>
