@@ -83,15 +83,16 @@
                     success : function(msg) {
                         var record1 =""
                         var record2 =""
-                        record1 += renderLatestData(msg["Round1"])
-                        record2 += renderLatestData(msg["Round2"])
                         date = msg["Date"]
-                    
+                        record1 += renderLatestData(msg["Round1"])
                         $('#latestResult_up').append(record1);
-                        $('#latestResult_down').append(record2);
-                        
                         $('#up_head').html(date + "    " +"Round 1")
-                        $('#down_head').html(date + "    " +"Round 2")
+                        
+                        if (msg["Round2"] != null){
+                            record2 += renderLatestData(msg["Round2"])    
+                            $('#latestResult_down').append(record2);
+                            $('#down_head').html(date + "    " +"Round 2")
+                        }
                     },
 
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
